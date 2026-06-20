@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxury Global Travel Explorer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,500&display=swap" rel="stylesheet">
+    <style>
+        /* ธีมพื้นหลังสุดหรูระดับพรีเมียม */
+        body { 
+            font-family: 'Segoe UI', 'Noto Sans Thai', sans-serif; 
+            max-width: 700px; 
+            margin: 0 auto; 
+            padding: 20px 20px 50px 20px; 
+            text-align: center; 
+            background: linear-gradient(135deg, #0f172a 0%, #020617 100%); 
+            color: #ffffff;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* พื้นผิวลายเกรนฟิล์มบางๆ ช่วยเพิ่มมิติให้พื้นหลังดูพรีเมียมขึ้น ไม่แบนจนเกินไป */
+        body::before {
+            content: "";
+            position: fixed; inset: 0; pointer-events: none; z-index: 1;
+            opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* วิกเน็ตขอบจอ ดึงสายตาเข้าสู่กึ่งกลางหน้าแบบงานดีไซน์ห้องเสื้อหรู */
+        body::after {
+            content: "";
+            position: fixed; inset: 0; pointer-events: none; z-index: 1;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(2,6,23,0.6) 100%);
+        }
+
+        h1, h2.destination-title { font-family: 'Playfair Display', 'Segoe UI', 'Noto Sans Thai', serif; }
+
+        /* แถบเมนูด้านบน (Navbar) */
+        .navbar {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 14px 18px;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+        .nav-item {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .nav-item:hover, .nav-item.active {
+            color: #ffe082;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+        
+        h1 { 
+            font-size: 2.8rem; 
+            font-weight: 800; 
+            letter-spacing: 3px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #ffe082 0%, #d4af37 50%, #b38f1d 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        p.subtitle {
+            color: #94a3b8;
+            font-size: 1.05rem;
+            margin-bottom: 16px;
+            font-family: 'Cormorant Garamond', 'Segoe UI', 'Noto Sans Thai', sans-serif;
+            font-style: italic;
+            letter-spacing: 0.3px;
+        }
+
+        /* ตัวคั่นลายเส้นทองพร้อมเพชรกลาง ใช้แบ่งหัวเรื่องกับส่วนค้นหาอย่างมีระดับ */
+        .ornament-divider {
+            display: flex; align-items: center; justify-content: center; gap: 14px;
+            margin: 0 auto 30px auto; max-width: 220px;
+        }
+        .ornament-divider .line { height: 1px; flex: 1; background: linear-gradient(to right, transparent, #d4af37); }
+        .ornament-divider .line.right { background: linear-gradient(to left, transparent, #d4af37); }
+        .ornament-divider .diamond { width: 7px; height: 7px; background: #d4af37; transform: rotate(45deg); flex-shrink: 0; }
+
+        .search-container { max-width: 550px; margin: 0 auto 20px auto; }
+        
+        /* กล่องค้นหา */
+        .search-box { 
+            display: flex; 
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border-radius: 30px;
+            overflow: hidden;
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        
+        input { 
+            padding: 20px 25px; flex: 1; font-size: 16px; border: none; outline: none; 
+            background: transparent; color: #ffffff;
+        }
+        input::placeholder { color: #64748b; }
+        
+        .search-btn { 
+            padding: 0 35px; font-size: 16px; 
+            background: linear-gradient(135deg, #d4af37 0%, #b38f1d 100%); 
+            color: #020617; border: none; cursor: pointer; font-weight: bold;
+        }
+
+        /* ปุ่มสุ่ม */
+        .random-btn {
+            background: rgba(212, 175, 55, 0.1); color: #ffe082; border: 1px solid #d4af37;
+            padding: 12px 28px; border-radius: 25px; cursor: pointer; font-size: 14px; 
+            font-weight: 600; transition: all 0.3s ease;
+            display: inline-block;
+        }
+        .random-btn:hover { 
+            background: rgba(212, 175, 55, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* เอฟเฟกต์แสงปาดผ่านปุ่มตอนโฮเวอร์ ให้ความรู้สึกแวววาวแบบโลหะทอง */
+        .search-btn, .maps-btn, .random-btn { position: relative; overflow: hidden; }
+        .search-btn::after, .maps-btn::after, .random-btn::after {
+            content: ""; position: absolute; top: 0; left: -130%; width: 55%; height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
+            transform: skewX(-20deg);
+            transition: left 0.7s ease;
+            pointer-events: none;
+        }
+        .search-btn:hover::after, .maps-btn:hover::after, .random-btn:hover::after { left: 130%; }
+
+        /* โซนแสดงรายชื่อประเทศเด่นประจำทวีป */
+        .featured-container {
+            max-width: 550px; margin: 0 auto 25px auto; text-align: left;
+        }
+        .featured-title {
+            font-size: 0.95rem; color: #ffe082; font-weight: 700; margin-bottom: 12px;
+            text-transform: uppercase; letter-spacing: 1px; display: block;
+        }
+        .featured-list {
+            display: flex; flex-wrap: wrap; gap: 10px;
+            max-height: 240px; overflow-y: auto; padding: 2px 6px 2px 2px;
+        }
+        .featured-list::-webkit-scrollbar { width: 6px; }
+        .featured-list::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.4); border-radius: 10px; }
+        .featured-list::-webkit-scrollbar-track { background: transparent; }
+        .country-badge {
+            background: rgba(212, 175, 55, 0.05); color: #ffe082; border: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 10px 20px; border-radius: 20px; cursor: pointer; font-size: 0.9rem;
+            transition: all 0.2s ease; font-weight: 500;
+        }
+        .country-badge:hover {
+            background: linear-gradient(135deg, #d4af37 0%, #b38f1d 100%); color: #020617; border-color: #d4af37;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+        
+        /* กล่องพรีวิวแสดงผล */
+        .preview-box { 
+            margin: 20px auto 0 auto; max-width: 550px;
+            background: rgba(15, 23, 42, 0.6); padding: 35px; border-radius: 24px; 
+            border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); text-align: left; 
+            position: relative;
+        }
+
+        /* มุมกรอบทองเล็กๆ ที่การ์ดพรีวิว ขัดเงาให้ดูเหมือนกรอบใบรับรอง VIP */
+        .preview-box::before, .preview-box::after {
+            content: ""; position: absolute; width: 22px; height: 22px;
+            border-color: rgba(212, 175, 55, 0.55);
+        }
+        .preview-box::before { top: 10px; left: 10px; border-top: 1px solid; border-left: 1px solid; }
+        .preview-box::after { bottom: 10px; right: 10px; border-bottom: 1px solid; border-right: 1px solid; }
+        
+        h2.destination-title {
+            font-size: 1.8rem; color: #ffe082; margin-top: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 15px;
+            letter-spacing: 0.5px;
+        }
+        
+        .img-container {
+            position: relative;
+            border-radius: 16px; overflow: hidden; margin: 20px 0; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            background: #1e293b;
+        }
+        /* รูปใหญ่ขึ้นเพื่อเห็นรายละเอียดสถานที่ชัดเจนกว่าเดิม */
+        .preview-img { width: 100%; height: 420px; object-fit: cover; display: block; transition: opacity 0.4s ease; }
+        @media (max-width: 480px) {
+            .preview-img { height: 260px; }
+        }
+
+        /* ตัวโหลดรูประหว่างดึงข้อมูลจาก Wikipedia */
+        .img-loading {
+            position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+            background: rgba(2, 6, 23, 0.55);
+        }
+        .spinner {
+            width: 42px; height: 42px; border-radius: 50%;
+            border: 3px solid rgba(212, 175, 55, 0.25); border-top-color: #d4af37;
+            animation: spin 0.9s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .img-credit { font-size: 0.72rem; color: #64748b; text-align: right; margin: -12px 0 18px 0; }
+        
+        .place-list { 
+            background: rgba(2, 6, 23, 0.4); padding: 22px; border-radius: 14px; 
+            margin-bottom: 30px; border-left: 4px solid #d4af37;
+        }
+        .place-list strong { color: #ffe082; display: block; margin-bottom: 10px; }
+        .place-list p { margin: 0; color: #e2e8f0; line-height: 1.7; }
+        
+        .maps-btn { 
+            padding: 18px; font-size: 15px; background: transparent; color: #d4af37; 
+            border: 2px solid #d4af37; border-radius: 35px; cursor: pointer; width: 100%; 
+            font-weight: 700; text-align: center; display: block; text-transform: uppercase;
+            letter-spacing: 1px; transition: all 0.3s ease;
+        }
+        .maps-btn:hover { 
+            background: linear-gradient(135deg, #d4af37 0%, #b38f1d 100%); color: #020617;
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+        }
+
+        /* ===== องค์ประกอบตกแต่งสำหรับจอคอมพิวเตอร์ขนาดใหญ่ ===== */
+
+        /* กรอบมุมหรูสไตล์ใบรับรอง/แกลเลอรี ติดอยู่กับขอบจอทั้งสี่มุม คือซิกเนเจอร์ของหน้านี้ */
+        .frame-corner {
+            position: fixed; width: 50px; height: 50px; pointer-events: none; z-index: 2;
+            border-color: rgba(212, 175, 55, 0.5);
+            display: none;
+        }
+        .frame-corner.tl { top: 24px; left: 24px; border-top: 1.5px solid; border-left: 1.5px solid; }
+        .frame-corner.tr { top: 24px; right: 24px; border-top: 1.5px solid; border-right: 1.5px solid; }
+        .frame-corner.bl { bottom: 24px; left: 24px; border-bottom: 1.5px solid; border-left: 1.5px solid; }
+        .frame-corner.br { bottom: 24px; right: 24px; border-bottom: 1.5px solid; border-right: 1.5px solid; }
+
+        /* แถบตกแต่งด้านข้างซ้าย-ขวา: เข็มทิศทอง + เส้นไกด์ + อักษรแนวตั้ง */
+        .side-decor {
+            display: none;
+            position: fixed; top: 0; bottom: 0; width: 100px;
+            flex-direction: column; align-items: center; justify-content: space-between;
+            padding: 70px 0; z-index: 2; pointer-events: none;
+        }
+        .side-decor.left { left: 0; }
+        .side-decor.right { right: 0; }
+        .side-decor .side-line {
+            width: 1px; flex: 1; margin: 20px 0;
+            background: linear-gradient(to bottom, transparent, rgba(212,175,55,0.45) 12%, rgba(212,175,55,0.45) 88%, transparent);
+        }
+        .side-decor .side-mark { width: 32px; height: 32px; opacity: 0.8; }
+        .side-decor .side-word {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            letter-spacing: 5px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            font-family: 'Cormorant Garamond', 'Segoe UI', sans-serif;
+            color: #d4af37;
+            opacity: 0.6;
+            white-space: nowrap;
+        }
+        .side-decor.right .side-word { writing-mode: vertical-lr; }
+
+        @media (min-width: 1100px) {
+            .frame-corner { display: block; }
+            .side-decor { display: flex; }
+        }
+
+        /* ฝุ่นทองลอยอ่อนๆ ทั่วทั้งหน้า เพิ่มบรรยากาศความหรูหราแบบละมุน */
+        .gold-particles { position: fixed; inset: 0; pointer-events: none; z-index: 2; overflow: hidden; }
+        .gold-particles span {
+            position: absolute; bottom: -10px;
+            width: 3px; height: 3px; border-radius: 50%;
+            background: #ffe082; box-shadow: 0 0 6px 1px rgba(255, 224, 130, 0.6);
+            animation-name: floatUp; animation-timing-function: linear; animation-iteration-count: infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 0.8; }
+            85% { opacity: 0.4; }
+            100% { transform: translateY(-110vh) translateX(20px); opacity: 0; }
+        }
+
+        /* เนื้อหาหลักอยู่เหนือชั้นวิกเน็ต/เกรน เพื่อให้ยังคลิกและอ่านได้ชัดเจนเหมือนเดิม */
+        .navbar, h1, .subtitle, .ornament-divider, .search-container, .featured-container, .preview-box {
+            position: relative; z-index: 3;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- กรอบมุมหรูสไตล์แกลเลอรี แสดงเฉพาะจอคอมพิวเตอร์ขนาดใหญ่ -->
+    <div class="frame-corner tl"></div>
+    <div class="frame-corner tr"></div>
+    <div class="frame-corner bl"></div>
+    <div class="frame-corner br"></div>
+
+    <!-- แถบตกแต่งด้านข้างซ้าย แสดงเฉพาะจอคอมพิวเตอร์ -->
+    <div class="side-decor left">
+        <svg class="side-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="18" stroke="#d4af37" stroke-width="1"/>
+            <path d="M20 4 L23 18 L20 36 L17 18 Z" fill="#d4af37" opacity="0.85"/>
+            <path d="M4 20 L18 17 L36 20 L18 23 Z" fill="#d4af37" opacity="0.5"/>
+            <circle cx="20" cy="20" r="2.5" fill="#020617" stroke="#ffe082" stroke-width="1"/>
+        </svg>
+        <div class="side-line"></div>
+        <span class="side-word">GLOBAL · LUXURY · EXPLORER</span>
+        <div class="side-line"></div>
+        <svg class="side-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="3" fill="#d4af37"/>
+            <circle cx="20" cy="20" r="11" stroke="#d4af37" stroke-width="0.75" opacity="0.6"/>
+            <circle cx="20" cy="20" r="17" stroke="#d4af37" stroke-width="0.5" opacity="0.35"/>
+        </svg>
+    </div>
+
+    <!-- แถบตกแต่งด้านข้างขวา แสดงเฉพาะจอคอมพิวเตอร์ -->
+    <div class="side-decor right">
+        <svg class="side-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="18" stroke="#d4af37" stroke-width="1"/>
+            <path d="M20 4 L23 18 L20 36 L17 18 Z" fill="#d4af37" opacity="0.85"/>
+            <path d="M4 20 L18 17 L36 20 L18 23 Z" fill="#d4af37" opacity="0.5"/>
+            <circle cx="20" cy="20" r="2.5" fill="#020617" stroke="#ffe082" stroke-width="1"/>
+        </svg>
+        <div class="side-line"></div>
+        <span class="side-word">EST. WORLDWIDE · MMXXVI</span>
+        <div class="side-line"></div>
+        <svg class="side-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="3" fill="#d4af37"/>
+            <circle cx="20" cy="20" r="11" stroke="#d4af37" stroke-width="0.75" opacity="0.6"/>
+            <circle cx="20" cy="20" r="17" stroke="#d4af37" stroke-width="0.5" opacity="0.35"/>
+        </svg>
+    </div>
+
+    <!-- ฝุ่นทองลอยตกแต่งบรรยากาศ สร้างด้วย JS ด้านล่าง -->
+    <div class="gold-particles" id="goldParticles"></div>
+
+    <div class="navbar">
+        <span class="nav-item active" onclick="filterContinent('all', this)">ทั้งหมด</span>
+        <span class="nav-item" onclick="filterContinent('asia', this)">เอเชีย</span>
+        <span class="nav-item" onclick="filterContinent('europe', this)">ยุโรป</span>
+        <span class="nav-item" onclick="filterContinent('africa', this)">แอฟริกา</span>
+        <span class="nav-item" onclick="filterContinent('america', this)">อเมริกา</span>
+        <span class="nav-item" onclick="filterContinent('oceania', this)">โอเชียเนีย</span>
+    </div>
+
+    <h1>Premium Explorer</h1>
+    <p class="subtitle">ระบบค้นพบจุดหมายปลายทางและแลนด์มาร์กเด่นทั่วโลก ครอบคลุมทุกประเทศกว่า 190 แห่ง</p>
+    <div class="ornament-divider"><span class="line"></span><span class="diamond"></span><span class="line right"></span></div>
+
+    <div class="search-container">
+        <div class="search-box">
+            <input type="text" id="countryInput" placeholder="พิมพ์ชื่อประเทศใดก็ได้ทั่วโลก หรือเมืองที่คุณตามหา..." onkeydown="handleEnter(event)">
+            <button class="search-btn" onclick="searchDestination()">ค้นหา</button>
+        </div>
+        <button id="randomBtn" class="random-btn" onclick="randomDestination()">🎲 สุ่มจุดหมายปลายทาง (ทุกประเทศทั่วโลก)</button>
+    </div>
+
+    <div class="featured-container">
+        <span id="featuredTitle" class="featured-title"></span>
+        <div id="featuredList" class="featured-list"></div>
+    </div>
+
+    <div id="previewContainer" class="preview-box">
+        <h2 id="previewTitle" class="destination-title">👑 จุดหมายปลายทาง</h2>
+        
+        <div class="img-container" id="imgContainer">
+            <img id="previewImage" class="preview-img" src="" alt="ภาพสถานที่ท่องเที่ยว">
+            <div id="imgLoading" class="img-loading"><div class="spinner"></div></div>
+        </div>
+        <p id="imgCredit" class="img-credit" style="display:none;">📷 ภาพประกอบจาก Wikipedia</p>
+        
+        <div class="place-list">
+            <strong id="previewCategory">GLOBAL LUXURY EXPERIENCE</strong>
+            <p id="previewDesc">กำลังดึงข้อมูลเส้นทางพรีเมียม...</p>
+        </div>
+        
+        <button class="maps-btn" onclick="goToMaps()">สำรวจพิกัดบนแผนที่โลก 🚀</button>
+    </div>
+
+    <script>
+        // ข้อมูลรูปภาพและคำอธิบายของแต่ละทวีปเมื่อถูกเลือก (ภาพประจำทวีปยังคงใช้ภาพคัดสรรแบบเดิม)
+        const continentData = {
+            all: {
+                title: "ยินดีต้อนรับสู่ Premium Explorer",
+                desc: "ระบบได้รวบรวมพิกัดท่องเที่ยวระดับพรีเมียมจากทุกประเทศทั่วโลกเอาไว้ให้คุณแล้ว เลือกทวีปด้านบนหรือกดสุ่มปลายทางเพื่อเริ่มการเดินทางได้ทันทีครับ",
+                img: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=900"
+            },
+            asia: {
+                title: "มหาทวีปเอเชีย (Asia)",
+                desc: "ดินแดนแห่งความหลากหลายทางวัฒนธรรมอันล้ำค่า สัมผัสความหรูหราที่ผสมผสานกับเอกลักษณ์ดั้งเดิมอย่างลงตัว ไม่ว่าจะเป็นแสงสีในเมืองหลวงใหญ่ หรือธรรมชาติอันงดงามที่ซ่อนอยู่",
+                img: "https://images.unsplash.com/photo-1535262412227-85541e910204?w=900"
+            },
+            europe: {
+                title: "ทวีปยุโรป (Europe)",
+                desc: "สัมผัสความคลาสสิก สถาปัตยกรรมระดับโลก และมนต์เสน่ห์แห่งประวัติศาสตร์ ยุโรปพร้อมมอบการเดินทางอันน่าจดจำด้วยเมืองท่าสุดโรแมนติกและวิถีชีวิตระดับไฮเอนด์",
+                img: "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=900"
+            },
+            africa: {
+                title: "ทวีปแอฟริกา (Africa)",
+                desc: "ดินแดนที่เต็มไปด้วยธรรมชาติอันยิ่งใหญ่ ทุ่งซาวันนากว้างไกล และสัตว์ป่านานาชนิด สัมผัสซาฟารีสุดตื่นเต้นและวัฒนธรรมอันหลากหลายในทุกมุมของทวีป",
+                img: "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=900"
+            },
+            america: {
+                title: "ทวีปอเมริกา (America)",
+                desc: "เปิดโลกกว้างไปกับดินแดนแห่งเสรีภาพและธรรมชาติอันยิ่งใหญ่ ตั้งแต่เมืองแห่งแสงสีที่ไม่เคยหลับใหล ไปจนถึงอุทยานแห่งชาติและสิ่งมหัศจรรย์ของโลกที่น่าตื่นตาตื่นใจ",
+                img: "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=900"
+            },
+            oceania: {
+                title: "ทวีปโอเชียเนีย (Oceania)",
+                desc: "หมู่เกาะกลางมหาสมุทรแปซิฟิกที่เต็มไปด้วยชายหาดสีฟ้าใส แนวปะการังสวยงาม และวิถีชีวิตอันเรียบง่ายแสนผ่อนคลาย เหมาะสำหรับวันหยุดพักผ่อนสุดหรู",
+                img: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=900"
+            }
+        };
+
+        // รายชื่อประเทศครบทุกทวีปทั่วโลก (ใช้ดึงรูปจริงแบบไดนามิกจาก Wikipedia แทนการฝังลิงก์รูปตายตัว)
+        const globalCountries = [
+            // เอเชีย
+            { th: "อัฟกานิสถาน", en: "Afghanistan", continent: "asia" },
+            { th: "อาร์เมเนีย", en: "Armenia", continent: "asia" },
+            { th: "อาเซอร์ไบจาน", en: "Azerbaijan", continent: "asia" },
+            { th: "บาห์เรน", en: "Bahrain", continent: "asia" },
+            { th: "บังกลาเทศ", en: "Bangladesh", continent: "asia" },
+            { th: "ภูฏาน", en: "Bhutan", continent: "asia" },
+            { th: "บรูไน", en: "Brunei", continent: "asia" },
+            { th: "กัมพูชา", en: "Cambodia", continent: "asia" },
+            { th: "จีน", en: "China", continent: "asia" },
+            { th: "ไซปรัส", en: "Cyprus", continent: "asia" },
+            { th: "จอร์เจีย", en: "Georgia", continent: "asia" },
+            { th: "อินเดีย", en: "India", continent: "asia" },
+            { th: "อินโดนีเซีย", en: "Indonesia", continent: "asia" },
+            { th: "อิหร่าน", en: "Iran", continent: "asia" },
+            { th: "อิรัก", en: "Iraq", continent: "asia" },
+            { th: "อิสราเอล", en: "Israel", continent: "asia" },
+            { th: "ญี่ปุ่น", en: "Japan", continent: "asia" },
+            { th: "จอร์แดน", en: "Jordan", continent: "asia" },
+            { th: "คาซัคสถาน", en: "Kazakhstan", continent: "asia" },
+            { th: "คูเวต", en: "Kuwait", continent: "asia" },
+            { th: "คีร์กีซสถาน", en: "Kyrgyzstan", continent: "asia" },
+            { th: "ลาว", en: "Laos", continent: "asia" },
+            { th: "เลบานอน", en: "Lebanon", continent: "asia" },
+            { th: "มาเลเซีย", en: "Malaysia", continent: "asia" },
+            { th: "มัลดีฟส์", en: "Maldives", continent: "asia" },
+            { th: "มองโกเลีย", en: "Mongolia", continent: "asia" },
+            { th: "เมียนมา", en: "Myanmar", continent: "asia" },
+            { th: "เนปาล", en: "Nepal", continent: "asia" },
+            { th: "เกาหลีเหนือ", en: "North Korea", continent: "asia" },
+            { th: "โอมาน", en: "Oman", continent: "asia" },
+            { th: "ปากีสถาน", en: "Pakistan", continent: "asia" },
+            { th: "ปาเลสไตน์", en: "Palestine", continent: "asia" },
+            { th: "ฟิลิปปินส์", en: "Philippines", continent: "asia" },
+            { th: "กาตาร์", en: "Qatar", continent: "asia" },
+            { th: "ซาอุดีอาระเบีย", en: "Saudi Arabia", continent: "asia" },
+            { th: "สิงคโปร์", en: "Singapore", continent: "asia" },
+            { th: "เกาหลีใต้", en: "South Korea", continent: "asia" },
+            { th: "ศรีลังกา", en: "Sri Lanka", continent: "asia" },
+            { th: "ซีเรีย", en: "Syria", continent: "asia" },
+            { th: "ไต้หวัน", en: "Taiwan", continent: "asia" },
+            { th: "ทาจิกิสถาน", en: "Tajikistan", continent: "asia" },
+            { th: "ไทย", en: "Thailand", continent: "asia" },
+            { th: "ติมอร์-เลสเต", en: "East Timor", continent: "asia" },
+            { th: "ตุรกี", en: "Turkey", continent: "asia" },
+            { th: "เติร์กเมนิสถาน", en: "Turkmenistan", continent: "asia" },
+            { th: "สหรัฐอาหรับเอมิเรตส์", en: "United Arab Emirates", continent: "asia" },
+            { th: "อุซเบกิสถาน", en: "Uzbekistan", continent: "asia" },
+            { th: "เวียดนาม", en: "Vietnam", continent: "asia" },
+            { th: "เยเมน", en: "Yemen", continent: "asia" },
+
+            // ยุโรป
+            { th: "แอลเบเนีย", en: "Albania", continent: "europe" },
+            { th: "อันดอร์รา", en: "Andorra", continent: "europe" },
+            { th: "ออสเตรีย", en: "Austria", continent: "europe" },
+            { th: "เบลารุส", en: "Belarus", continent: "europe" },
+            { th: "เบลเยียม", en: "Belgium", continent: "europe" },
+            { th: "บอสเนียและเฮอร์เซโกวีนา", en: "Bosnia and Herzegovina", continent: "europe" },
+            { th: "บัลแกเรีย", en: "Bulgaria", continent: "europe" },
+            { th: "โครเอเชีย", en: "Croatia", continent: "europe" },
+            { th: "สาธารณรัฐเช็ก", en: "Czech Republic", continent: "europe" },
+            { th: "เดนมาร์ก", en: "Denmark", continent: "europe" },
+            { th: "เอสโตเนีย", en: "Estonia", continent: "europe" },
+            { th: "ฟินแลนด์", en: "Finland", continent: "europe" },
+            { th: "ฝรั่งเศส", en: "France", continent: "europe" },
+            { th: "เยอรมนี", en: "Germany", continent: "europe" },
+            { th: "กรีซ", en: "Greece", continent: "europe" },
+            { th: "ฮังการี", en: "Hungary", continent: "europe" },
+            { th: "ไอซ์แลนด์", en: "Iceland", continent: "europe" },
+            { th: "ไอร์แลนด์", en: "Ireland", continent: "europe" },
+            { th: "อิตาลี", en: "Italy", continent: "europe" },
+            { th: "โคโซโว", en: "Kosovo", continent: "europe" },
+            { th: "ลัตเวีย", en: "Latvia", continent: "europe" },
+            { th: "ลิกเตนสไตน์", en: "Liechtenstein", continent: "europe" },
+            { th: "ลิทัวเนีย", en: "Lithuania", continent: "europe" },
+            { th: "ลักเซมเบิร์ก", en: "Luxembourg", continent: "europe" },
+            { th: "มอลตา", en: "Malta", continent: "europe" },
+            { th: "มอลโดวา", en: "Moldova", continent: "europe" },
+            { th: "โมนาโก", en: "Monaco", continent: "europe" },
+            { th: "มอนเตเนโกร", en: "Montenegro", continent: "europe" },
+            { th: "เนเธอร์แลนด์", en: "Netherlands", continent: "europe" },
+            { th: "มาซิโดเนียเหนือ", en: "North Macedonia", continent: "europe" },
+            { th: "นอร์เวย์", en: "Norway", continent: "europe" },
+            { th: "โปแลนด์", en: "Poland", continent: "europe" },
+            { th: "โปรตุเกส", en: "Portugal", continent: "europe" },
+            { th: "โรมาเนีย", en: "Romania", continent: "europe" },
+            { th: "รัสเซีย", en: "Russia", continent: "europe" },
+            { th: "ซานมารีโน", en: "San Marino", continent: "europe" },
+            { th: "เซอร์เบีย", en: "Serbia", continent: "europe" },
+            { th: "สโลวาเกีย", en: "Slovakia", continent: "europe" },
+            { th: "สโลวีเนีย", en: "Slovenia", continent: "europe" },
+            { th: "สเปน", en: "Spain", continent: "europe" },
+            { th: "สวีเดน", en: "Sweden", continent: "europe" },
+            { th: "สวิตเซอร์แลนด์", en: "Switzerland", continent: "europe" },
+            { th: "ยูเครน", en: "Ukraine", continent: "europe" },
+            { th: "สหราชอาณาจักร", en: "United Kingdom", continent: "europe" },
+            { th: "นครรัฐวาติกัน", en: "Vatican City", continent: "europe" },
+
+            // แอฟริกา
+            { th: "แอลจีเรีย", en: "Algeria", continent: "africa" },
+            { th: "แองโกลา", en: "Angola", continent: "africa" },
+            { th: "เบนิน", en: "Benin", continent: "africa" },
+            { th: "บอตสวานา", en: "Botswana", continent: "africa" },
+            { th: "บูร์กินาฟาโซ", en: "Burkina Faso", continent: "africa" },
+            { th: "บุรุนดี", en: "Burundi", continent: "africa" },
+            { th: "กาบูเวร์ดี", en: "Cabo Verde", continent: "africa" },
+            { th: "แคเมอรูน", en: "Cameroon", continent: "africa" },
+            { th: "สาธารณรัฐแอฟริกากลาง", en: "Central African Republic", continent: "africa" },
+            { th: "ชาด", en: "Chad", continent: "africa" },
+            { th: "คอโมโรส", en: "Comoros", continent: "africa" },
+            { th: "สาธารณรัฐคองโก", en: "Republic of the Congo", continent: "africa" },
+            { th: "สาธารณรัฐประชาธิปไตยคองโก", en: "Democratic Republic of the Congo", continent: "africa" },
+            { th: "จิบูตี", en: "Djibouti", continent: "africa" },
+            { th: "อียิปต์", en: "Egypt", continent: "africa" },
+            { th: "อิเควทอเรียลกินี", en: "Equatorial Guinea", continent: "africa" },
+            { th: "เอริเทรีย", en: "Eritrea", continent: "africa" },
+            { th: "เอสวาตินี", en: "Eswatini", continent: "africa" },
+            { th: "เอธิโอเปีย", en: "Ethiopia", continent: "africa" },
+            { th: "กาบอง", en: "Gabon", continent: "africa" },
+            { th: "แกมเบีย", en: "Gambia", continent: "africa" },
+            { th: "กานา", en: "Ghana", continent: "africa" },
+            { th: "กินี", en: "Guinea", continent: "africa" },
+            { th: "กินี-บิสเซา", en: "Guinea-Bissau", continent: "africa" },
+            { th: "ไอวอรีโคสต์", en: "Ivory Coast", continent: "africa" },
+            { th: "เคนยา", en: "Kenya", continent: "africa" },
+            { th: "เลโซโท", en: "Lesotho", continent: "africa" },
+            { th: "ไลบีเรีย", en: "Liberia", continent: "africa" },
+            { th: "ลิเบีย", en: "Libya", continent: "africa" },
+            { th: "มาดากัสการ์", en: "Madagascar", continent: "africa" },
+            { th: "มาลาวี", en: "Malawi", continent: "africa" },
+            { th: "มาลี", en: "Mali", continent: "africa" },
+            { th: "มอริเตเนีย", en: "Mauritania", continent: "africa" },
+            { th: "มอริเชียส", en: "Mauritius", continent: "africa" },
+            { th: "โมร็อกโก", en: "Morocco", continent: "africa" },
+            { th: "โมซัมบิก", en: "Mozambique", continent: "africa" },
+            { th: "นามิเบีย", en: "Namibia", continent: "africa" },
+            { th: "ไนเจอร์", en: "Niger", continent: "africa" },
+            { th: "ไนจีเรีย", en: "Nigeria", continent: "africa" },
+            { th: "รวันดา", en: "Rwanda", continent: "africa" },
+            { th: "เซาตูเมและปรินซิปี", en: "Sao Tome and Principe", continent: "africa" },
+            { th: "เซเนกัล", en: "Senegal", continent: "africa" },
+            { th: "เซเชลส์", en: "Seychelles", continent: "africa" },
+            { th: "เซียร์ราลีโอน", en: "Sierra Leone", continent: "africa" },
+            { th: "โซมาเลีย", en: "Somalia", continent: "africa" },
+            { th: "แอฟริกาใต้", en: "South Africa", continent: "africa" },
+            { th: "ซูดานใต้", en: "South Sudan", continent: "africa" },
+            { th: "ซูดาน", en: "Sudan", continent: "africa" },
+            { th: "แทนซาเนีย", en: "Tanzania", continent: "africa" },
+            { th: "โตโก", en: "Togo", continent: "africa" },
+            { th: "ตูนิเซีย", en: "Tunisia", continent: "africa" },
+            { th: "ยูกันดา", en: "Uganda", continent: "africa" },
+            { th: "แซมเบีย", en: "Zambia", continent: "africa" },
+            { th: "ซิมบับเว", en: "Zimbabwe", continent: "africa" },
+
+            // อเมริกา (เหนือ กลาง ใต้ และแคริบเบียน)
+            { th: "แอนติกาและบาร์บูดา", en: "Antigua and Barbuda", continent: "america" },
+            { th: "อาร์เจนตินา", en: "Argentina", continent: "america" },
+            { th: "บาฮามาส", en: "Bahamas", continent: "america" },
+            { th: "บาร์เบโดส", en: "Barbados", continent: "america" },
+            { th: "เบลีซ", en: "Belize", continent: "america" },
+            { th: "โบลิเวีย", en: "Bolivia", continent: "america" },
+            { th: "บราซิล", en: "Brazil", continent: "america" },
+            { th: "แคนาดา", en: "Canada", continent: "america" },
+            { th: "ชิลี", en: "Chile", continent: "america" },
+            { th: "โคลอมเบีย", en: "Colombia", continent: "america" },
+            { th: "คอสตาริกา", en: "Costa Rica", continent: "america" },
+            { th: "คิวบา", en: "Cuba", continent: "america" },
+            { th: "โดมินิกา", en: "Dominica", continent: "america" },
+            { th: "สาธารณรัฐโดมินิกัน", en: "Dominican Republic", continent: "america" },
+            { th: "เอกวาดอร์", en: "Ecuador", continent: "america" },
+            { th: "เอลซัลวาดอร์", en: "El Salvador", continent: "america" },
+            { th: "เกรเนดา", en: "Grenada", continent: "america" },
+            { th: "กัวเตมาลา", en: "Guatemala", continent: "america" },
+            { th: "กายอานา", en: "Guyana", continent: "america" },
+            { th: "เฮติ", en: "Haiti", continent: "america" },
+            { th: "ฮอนดูรัส", en: "Honduras", continent: "america" },
+            { th: "จาเมกา", en: "Jamaica", continent: "america" },
+            { th: "เม็กซิโก", en: "Mexico", continent: "america" },
+            { th: "นิการากัว", en: "Nicaragua", continent: "america" },
+            { th: "ปานามา", en: "Panama", continent: "america" },
+            { th: "ปารากวัย", en: "Paraguay", continent: "america" },
+            { th: "เปรู", en: "Peru", continent: "america" },
+            { th: "เซนต์คิตส์และเนวิส", en: "Saint Kitts and Nevis", continent: "america" },
+            { th: "เซนต์ลูเซีย", en: "Saint Lucia", continent: "america" },
+            { th: "เซนต์วินเซนต์และเกรนาดีนส์", en: "Saint Vincent and the Grenadines", continent: "america" },
+            { th: "ซูรินาม", en: "Suriname", continent: "america" },
+            { th: "ตรินิแดดและโตเบโก", en: "Trinidad and Tobago", continent: "america" },
+            { th: "สหรัฐอเมริกา", en: "United States", continent: "america" },
+            { th: "อุรุกวัย", en: "Uruguay", continent: "america" },
+            { th: "เวเนซุเอลา", en: "Venezuela", continent: "america" },
+
+            // โอเชียเนีย
+            { th: "ออสเตรเลีย", en: "Australia", continent: "oceania" },
+            { th: "ฟิจิ", en: "Fiji", continent: "oceania" },
+            { th: "คิริบาส", en: "Kiribati", continent: "oceania" },
+            { th: "หมู่เกาะมาร์แชลล์", en: "Marshall Islands", continent: "oceania" },
+            { th: "ไมโครนีเซีย", en: "Micronesia", continent: "oceania" },
+            { th: "นาอูรู", en: "Nauru", continent: "oceania" },
+            { th: "นิวซีแลนด์", en: "New Zealand", continent: "oceania" },
+            { th: "ปาเลา", en: "Palau", continent: "oceania" },
+            { th: "ปาปัวนิวกินี", en: "Papua New Guinea", continent: "oceania" },
+            { th: "ซามัว", en: "Samoa", continent: "oceania" },
+            { th: "หมู่เกาะโซโลมอน", en: "Solomon Islands", continent: "oceania" },
+            { th: "ตองงา", en: "Tonga", continent: "oceania" },
+            { th: "ตูวาลู", en: "Tuvalu", continent: "oceania" },
+            { th: "วานูอาตู", en: "Vanuatu", continent: "oceania" }
+        ];
+
+        let currentContinent = "all";
+        let currentDestinationKey = "";
+        let requestId = 0; // ใช้ป้องกัน race condition เวลาผู้ใช้กดเลือกที่ใหม่ระหว่างรอโหลดรูป
+
+        // ฟังก์ชันเมื่อคลิกเลือกแท็บเมนู
+        function filterContinent(continent, element) {
+            currentContinent = continent;
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            element.classList.add('active');
+            
+            let randomBtn = document.getElementById("randomBtn");
+            let featuredTitle = document.getElementById("featuredTitle");
+            
+            if (continent === "all") {
+                randomBtn.style.display = "inline-block";
+                featuredTitle.innerText = ""; // หน้าแรกจะไม่แสดงข้อความหัวข้อรายชื่อสถานที่
+                document.getElementById("featuredList").innerHTML = ""; // เคลียร์ปุ่มสถานที่ในหน้าแรกออก
+                
+                // แสดงข้อมูลภาพรวมของหน้าแรก
+                showContinentPreview("all");
+            } else {
+                randomBtn.style.display = "none";
+                featuredTitle.innerText = `📍 ขยายจุดหมายปลายทางยอดนิยมในภูมิภาค${element.innerText}:`;
+                
+                // อัปเดตรายชื่อสถานที่เด่นประจำทวีปนั้นๆ ขึ้นมาให้เลือกกดแบบกว้างๆ
+                renderFeaturedCountries();
+                // แสดงรูปภาพและคำอธิบายประจำทวีปนั้นทันที
+                showContinentPreview(continent);
+            }
+        }
+
+        // ตั้งค่ารูปพรีวิวพร้อมเอฟเฟกต์เฟดและรูปสำรองหากโหลดไม่สำเร็จ
+        function applyPreviewImage(url) {
+            const imgEl = document.getElementById("previewImage");
+            const loadingEl = document.getElementById("imgLoading");
+            const fallback = "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=900";
+            imgEl.style.opacity = "0.25";
+            imgEl.onerror = function () { imgEl.onerror = null; imgEl.src = fallback; };
+            imgEl.onload = function () { imgEl.style.opacity = "1"; loadingEl.style.display = "none"; };
+            imgEl.src = url;
+        }
+
+        // ฟังก์ชันแสดงข้อมูลพรีวิวของทวีป (ใช้ภาพคัดสรรประจำทวีปแบบเดิม โหลดทันทีไม่ต้องรอ)
+        function showContinentPreview(continent) {
+            let data = continentData[continent];
+            currentDestinationKey = continent === "all" ? "World" : continent;
+            
+            document.getElementById("previewTitle").innerText = "👑 " + data.title;
+            document.getElementById("previewCategory").innerText = "CONTINENT EXPLORER EXPERIENCE";
+            document.getElementById("previewDesc").innerText = data.desc;
+
+            requestId++; // ยกเลิกคำขอรูปภาพที่อาจค้างอยู่จากปลายทางก่อนหน้า
+            document.getElementById("imgLoading").style.display = "none";
+            document.getElementById("imgCredit").style.display = "none";
+            applyPreviewImage(data.img);
+        }
+
+        // ดึงรูปภาพจริงของแต่ละประเทศ/สถานที่แบบไดนามิกจาก Wikipedia
+        // วิธีนี้ทำให้ระบบรองรับ "ทุกประเทศทั่วโลก" ได้โดยไม่ต้องฝังลิงก์รูปไว้ล่วงหน้าทีละประเทศ
+        async function setDestinationImage(placeName) {
+            const myId = ++requestId;
+            const loadingEl = document.getElementById("imgLoading");
+            const creditEl = document.getElementById("imgCredit");
+            loadingEl.style.display = "flex";
+            creditEl.style.display = "none";
+
+            let imgUrl = null;
+            try {
+                const apiUrl = "https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&formatversion=2&pithumbsize=900&redirects=1&origin=*&titles=" + encodeURIComponent(placeName);
+                const resp = await fetch(apiUrl);
+                const data = await resp.json();
+                const page = data.query && data.query.pages && data.query.pages[0];
+                if (page && page.thumbnail && page.thumbnail.source) {
+                    imgUrl = page.thumbnail.source;
+                }
+            } catch (err) {
+                console.warn("โหลดรูปภาพไม่สำเร็จ:", err);
+            }
+
+            if (myId !== requestId) return; // ผู้ใช้เลือกปลายทางใหม่ไปแล้วระหว่างรอโหลด ไม่ต้องอัปเดตผลลัพธ์เก่า
+
+            if (imgUrl) {
+                applyPreviewImage(imgUrl);
+                creditEl.style.display = "block";
+            } else {
+                applyPreviewImage("https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=900");
+            }
+        }
+
+        // ฟังก์ชันสร้างรายชื่อปุ่มสถานที่ในทวีปนั้นๆ
+        function renderFeaturedCountries() {
+            let filteredList = globalCountries.filter(c => c.continent === currentContinent);
+            let listHtml = "";
+            filteredList.forEach(country => {
+                listHtml += `<div class="country-badge" onclick="selectCountry('${country.en}')">📍 ${country.th}</div>`;
+            });
+            document.getElementById("featuredList").innerHTML = listHtml;
+        }
+
+        // ฟังก์ชันเมื่อคลิกเลือกสถานที่ย่อยภายในทวีป
+        function selectCountry(countryEn) {
+            let country = globalCountries.find(c => c.en === countryEn);
+            if (country) {
+                currentDestinationKey = country.en;
+                document.getElementById("previewTitle").innerText = "👑 " + country.th + " (" + country.en + ")";
+                document.getElementById("previewCategory").innerText = "EXCLUSIVE DESTINATION";
+                document.getElementById("previewDesc").innerText = `คุณได้เลือกเข้าชมข้อมูลของ "${country.th}" เรียบร้อยแล้ว พร้อมออกเดินทางเจาะลึกพิกัดแลนด์มาร์กสำคัญบนแผนที่โลกได้ทันทีผ่านปุ่มด้านล่าง`;
+                setDestinationImage(country.en);
+            }
+        }
+
+        // ฟังก์ชันสุ่มประเทศ (ครอบคลุมทุกประเทศทั่วโลกในลิสต์ globalCountries ทั้งหมด)
+        function randomDestination() {
+            let randomIndex = Math.floor(Math.random() * globalCountries.length);
+            let country = globalCountries[randomIndex];
+            
+            currentDestinationKey = country.en;
+            document.getElementById("previewTitle").innerText = "👑 " + country.th + " (" + country.en + ")";
+            document.getElementById("previewCategory").innerText = "GLOBAL LUXURY EXPERIENCE";
+            document.getElementById("previewDesc").innerText = `ระบบสุ่มพบพิกัดที่น่าสนใจของ "${country.th}" เรียบร้อยแล้ว คลิกปุ่มสีทองด้านล่างเพื่อเปิด Google Maps นำทางสู่แลนด์มาร์กหลักได้ทันทีครับ`;
+            setDestinationImage(country.en);
+        }
+
+        // ฟังก์ชันสำหรับกล่องพิมพ์ค้นหาเอง
+        function searchDestination() {
+            let query = document.getElementById("countryInput").value.trim();
+            if (query === "") { alert("กรุณาระบุจุดหมายปลายทางของคุณ"); return; }
+
+            let found = globalCountries.find(item => 
+                item.th.includes(query) || item.en.toLowerCase().includes(query.toLowerCase())
+            );
+
+            if (found) {
+                currentDestinationKey = found.en;
+                document.getElementById("previewTitle").innerText = "👑 " + found.th + " (" + found.en + ")";
+                document.getElementById("previewCategory").innerText = "EXCLUSIVE DESTINATION";
+                document.getElementById("previewDesc").innerText = `ระบบเตรียมพิกัดแผนที่เจาะลึกของ "${found.th}" เรียบร้อยแล้ว พร้อมเดินทางได้ทันที`;
+                setDestinationImage(found.en);
+            } else {
+                // แม้ไม่อยู่ในลิสต์ ก็ยังลองดึงภาพจริงจาก Wikipedia ให้ตามคำค้นหาที่พิมพ์ (เช่น ชื่อเมืองหรือแลนด์มาร์ก)
+                currentDestinationKey = query;
+                document.getElementById("previewTitle").innerText = "📌 ปลายทางอิสระ: " + query;
+                document.getElementById("previewCategory").innerText = "EXPLORER SEARCH";
+                document.getElementById("previewDesc").innerText = `เตรียมพิกัดแผนที่ค้นหาของ "${query}" เรียบร้อยแล้ว`;
+                setDestinationImage(query);
+            }
+        }
+
+        function handleEnter(event) { if (event.key === "Enter") { searchDestination(); } }
+
+        function goToMaps() {
+            if (currentDestinationKey === "") return;
+            let searchQuery = "Tourist attractions in " + currentDestinationKey;
+            let googleMapsUrl = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(searchQuery);
+            window.open(googleMapsUrl, '_blank');
+        }
+
+        // สร้างฝุ่นทองลอยแบบสุ่มตำแหน่ง/ความเร็ว/ดีเลย์ เพื่อให้บรรยากาศโดยรอบดูพรีเมียมขึ้นแบบไม่รบกวนเนื้อหา
+        function spawnGoldParticles() {
+            const container = document.getElementById('goldParticles');
+            const total = 16;
+            for (let i = 0; i < total; i++) {
+                const dot = document.createElement('span');
+                dot.style.left = (Math.random() * 100) + '%';
+                dot.style.animationDuration = (10 + Math.random() * 10) + 's';
+                dot.style.animationDelay = (Math.random() * 14) + 's';
+                dot.style.opacity = (0.3 + Math.random() * 0.5).toFixed(2);
+                container.appendChild(dot);
+            }
+        }
+
+        // เริ่มต้นโหลดหน้าเว็บครั้งแรกให้แสดงข้อมูลภาพรวมของหน้าแรกทั้งหมด
+        window.onload = function() { 
+            showContinentPreview("all");
+            spawnGoldParticles();
+        };
+    </script>
+</body>
+</html>
